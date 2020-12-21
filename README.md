@@ -11,7 +11,7 @@ This is intended to auto add people as members to a gsuite through a google form
 - Create a Google Forms Survey and Generate the Google Sheet
 
 ## Run
-`npm install`
-`node .`
+- `npm install`
+- `node .`
 
 Firebase info will come after its completed
