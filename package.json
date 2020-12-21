@@ -1,0 +1,23 @@
+{
+  "name": "thrust-google-user-integration",
+  "version": "1.0.0",
+  "description": "automatically add new users",
+  "main": "index.js",
+  "dependencies": {
+    "googleapis": "^39.2.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/goelp14/thrust-google-user-integration.git"
+  },
+  "author": "Pranav Goel",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/goelp14/thrust-google-user-integration/issues"
+  },
+  "homepage": "https://github.com/goelp14/thrust-google-user-integration#readme"
+}
