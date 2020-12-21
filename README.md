@@ -7,10 +7,11 @@ This is intended to auto add people as members to a gsuite through a google form
 - Google Developer Account (For Your GSuite)
     - Make sure you are an admin
 - Enable API via [Quickstart](https://developers.google.com/admin-sdk/directory/v1/quickstart/nodejs)
-    -   store credentials.json in this directory
+    - store credentials as `credentials.json` in this directory
 - Also enable the Gmail API
 - Create a Firebase Project connected to the project you made in the previous step
-- Create a Google Forms Survey and Generate the Google Sheet
+    - store service credentials (`Settings > Service accounts > Generate new private key`) as `service-account-credentials.json`
+- Create a Google Forms Survey and generate a linked Google Sheet
 
 ## Create Survey
 Make the survey via google forms. Create the linked spreadsheet. The headers on the spreadsheet should look something like this:
