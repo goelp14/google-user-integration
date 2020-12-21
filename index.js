@@ -4,7 +4,11 @@ const { google } = require('googleapis');
 const { group } = require('console');
 
 // If modifying these scopes, delete token.json.
-const SCOPES = [ 'https://www.googleapis.com/auth/admin.directory.user' ];
+const SCOPES = [
+	'https://www.googleapis.com/auth/admin.directory.user',
+	'https://www.googleapis.com/auth/admin.directory.group.member',
+	'https://www.googleapis.com/auth/gmail.send'
+];
 // The file token.json stores the user's access and refresh tokens, and is
 // created automatically when the authorization flow completes for the first
 // time.
@@ -79,93 +83,137 @@ function storeToken(token) {
 	});
 }
 
-/**
- * Lists the first 10 users in the domain.
- *
- * @param {google.auth.OAuth2} auth An authorized OAuth2 client.
- */
-function listUsers(auth) {
-	const service = google.admin({ version: 'directory_v1', auth });
-	service.users.list(
-		{
-			customer: 'my_customer',
-			maxResults: 10,
-			orderBy: 'email'
-		},
-		(err, res) => {
-			if (err) return console.error('The API returned an error:', err.message);
-
-			const users = res.data.users;
-			if (users.length) {
-				console.log('Users:');
-				users.forEach((user) => {
-					console.log(`${user.primaryEmail} (${user.name.fullName})`);
-				});
-			} else {
-				console.log('No users found.');
-			}
-		}
-	);
-}
-
 function insertUsers(auth) {
-    var admin = require("firebase-admin");
+    // Initialize firebase
+	var admin = require('firebase-admin');
+    var serviceAccount = require('./service-account-credentials.json');
+    
+	// Initialize the app with a service account, granting admin privileges
+	admin.initializeApp({
+		credential: admin.credential.cert(serviceAccount),
+		databaseURL: 'https://new-member-integ-1608506978874-default-rtdb.firebaseio.com/'
+    });
+    
+    // create database reference 
+    var db = admin.database();
+    var ref = db.ref('/');
 
-	const service = google.admin({ version: 'directory_v1', auth });
-	first = 'new';
-	last = 'user';
-	recoveryEmail = 'example@gmail.com';
-	console.log('Adding New User..');
-	console.log('Primary Email: ' + first + '.' + last + '@thrustcorp.space');
-	console.log('Given Name: ' + first);
-	console.log('Family Name: ' + last);
-	// service.users.insert(
-	// 	{
-	// 		resource: {
-	// 			primaryEmail: first + '.' + last + '@thrustcorp.space',
-	// 			password: 'password',
-	// 			isAdmin: false,
-	// 			isDelegatedAdmin: false,
-	// 			agreedToTerms: true,
-	// 			changePasswordAtNextLogin: true,
-	// 			kind: 'admin#directory#user',
-	// 			name: {
-	// 				givenName: first,
-	// 				familyName: last
-	// 			}
-	// 		}
-	// 	},
-	// 	(err, res) => {
-	// 		if (err) return console.error('The API returned an error:', err.message);
+    // When a new user is added via google survey add it to Gsuite.
+	ref.on('child_added', function(snapshot, prevChildKey) {
+        // Initialize Email
+		var Mail = require('./createMail.js');
+        var newPost = snapshot.val();
+        
+        // Initialize Data
+		first = newPost.firstName;
+		last = newPost.lastName;
+		recoveryEmail = newPost.email;
+		thrustEmail = first + '.' + last + '@thrustcorp.space';
+        thrustEmail = thrustEmail.toLowerCase();
+        
+        // Initialize Admin SDK Service
+		const service = google.admin({ version: 'directory_v1', auth });
+        console.log('Adding New User...');
+        
+        // Create new user
+		service.users.insert(
+			{
+				resource: {
+					primaryEmail: first + '.' + last + '@thrustcorp.space',
+					password: 'password',
+					isAdmin: false,
+					isDelegatedAdmin: false,
+					agreedToTerms: true,
+					changePasswordAtNextLogin: true,
+					kind: 'admin#directory#user',
+					recoveryEmail: recoveryEmail,
+					name: {
+						givenName: first,
+						familyName: last
+					}
+				}
+			},
+			(err, res) => {
+                // If the account is already made send out error email
+				if (err) {
+					var mail = new Mail(
+						auth,
+						recoveryEmail,
+						'ERROR: User Account Already Created',
+						'Hello ' +
+							first +
+							' ' +
+							last +
+							",\n\nOur database is indicating that your account has already been made. You will still receive a welcome mail so first try logging in. If you are lucky, you will be able to access your account! If this doesn't work or you still have more questions/issues please contact it@thrustcorp.space and we will help you as soon as possible.\n\nCheers,\nPranav Goel - Internal Director",
+						'mail'
+					);
+					return mail.makeBody();
+					return console.error('The API returned an error:', err.message);
+                }
+				const user = res.data;
+				if (user.length) {
+					console.log('\nNew User added:');
+					console.log('Given Name: ' + first);
+					console.log('Family Name: ' + last);
+					console.log('Primary Email: ' + thrustEmail);
+					console.log('Recovery Email: ' + recoveryEmail);
+					console.log('Primary Project: ' + newPost.primaryProject);
+					console.log('Gender: ' + newPost.gender);
+				}
+			}
+		);
+        
+        // Initialize Group Info
+		groupName = newPost.primaryProject;
+		switch (groupName) {
+			case 'Structures Thrust Vector Control':
+				groupkey = 'structures.tvc@thrustcorp.space';
+				break;
+			case 'Executive Board':
+				groupkey = 'executive@thrustcorp.space';
+				break;
+			default:
+				groupName = groupName.split(' ');
+				groupName[0] == 'R&D'
+					? (groupkey = 'rd.' + groupName.slice(1).join('.').toLowerCase() + '@thrustcorp.space')
+					: (groupkey = groupName.join('.').toLowerCase() + '@thrustcorp.space');
+        }
+        let user = {
+			email: thrustEmail,
+			role: 'MEMBER'
+		};
+		key = {
+			groupKey: groupkey
+		};
 
-	// 		const user = res.data;
-	// 		if (user.length) {
-	// 			console.log('New User added:');
-	// 			console.log(`${user}`);
-	// 		} else {
-	// 			console.log('No users found.');
-	// 		}
-	// 	}
-	// );
-
-	groupName = 'R&D Thrust Vector Control';
-	switch (groupName) {
-		case 'Structures Thrust Vector Control':
-			groupkey = 'structures.tvc@thrustcorp.space';
-			break;
-		default:
-			groupName = groupName.split(' ');
-			groupName[0] == 'R&D'
-				? (groupkey = 'rd.' + groupName.slice(1).join('.').toLowerCase() + '@thrustcorp.space')
-				: (groupkey = groupName.join('.').toLowerCase() + '@thrustcorp.space');
-	}
-
-	console.log('Assigning Group...');
-	console.log('Group Key: ' + groupkey);
-	let group = {
-		email: first + '.' + last + '@thrustcorp.space',
-		role: 'MEMBER'
-	};
-	console.log('Group Member Email: ' + group['email']);
-	console.log('Group Member Role: ' + group['role']);
+		input = {
+			groupKey: groupkey,
+			resource: user
+        };
+        
+        console.log('\nAssigning Group...\n');
+        
+        // Add New Member to Corresponding Group
+		service.members.insert(input, (err, res) => {
+			if (err) return console.error('The API returned an error:', err.message);
+			// console.log(res);
+			console.log('Group Key: ' + groupkey);
+			console.log('Group Member Email: ' + user['email']);
+			console.log('Group Member Role: ' + user['role']);
+        });
+        
+		// Send email with password and info
+		var obj = new Mail(
+			auth,
+			recoveryEmail,
+			'Welcome!',
+			'Welcome ' +
+				first +
+				' ' +
+				last +
+				'!\n\nYour new email: ' + thrustEmail +'\nYour temporary password: password\n\nFollow the next steps and be on your way!\n\n1) Login to your Thrust account at groups.google.com with your temporary password (you will be prompted to change it after signing in the first time)\n2) If you want to join more projects, navigate to "All Groups" and click the ask to join button (We will accept your request when we see it)\n3) Use your newly made gsuite account as you wish!\n\nYou can find relevant files at drive.google.com. You should also have access to shared drives depending on what group you are in. Things like gmail, photos, etc. can all be accessed via your new account (just login!).\n\n If you have any questions or issues please reach out to internal@thrustcorp.space or it@thrustcorp.space. We look forward to working with you!\n\nCheers,\nPranav Goel - Internal Director',
+			'mail'
+		);
+		obj.makeBody();
+	});
 }

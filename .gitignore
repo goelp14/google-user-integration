@@ -5,3 +5,4 @@ node_modules/
 gooogle-directory/
 requirements.txt
 package-lock.json
+service-account-credentials.json
