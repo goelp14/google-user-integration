@@ -109,6 +109,8 @@ function listUsers(auth) {
 }
 
 function insertUsers(auth) {
+    var admin = require("firebase-admin");
+
 	const service = google.admin({ version: 'directory_v1', auth });
 	first = 'new';
 	last = 'user';
@@ -146,13 +148,13 @@ function insertUsers(auth) {
 	// 	}
 	// );
 
-	groupName = 'R&D-Thrust-Vector-Control';
+	groupName = 'R&D Thrust Vector Control';
 	switch (groupName) {
-		case 'Structures-Thrust-Vector-Control':
+		case 'Structures Thrust Vector Control':
 			groupkey = 'structures.tvc@thrustcorp.space';
 			break;
 		default:
-			groupName = groupName.split('-');
+			groupName = groupName.split(' ');
 			groupName[0] == 'R&D'
 				? (groupkey = 'rd.' + groupName.slice(1).join('.').toLowerCase() + '@thrustcorp.space')
 				: (groupkey = groupName.join('.').toLowerCase() + '@thrustcorp.space');

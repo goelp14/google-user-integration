@@ -4,3 +4,4 @@ users.csv
 node_modules/
 gooogle-directory/
 requirements.txt
+package-lock.json

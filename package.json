@@ -4,6 +4,7 @@
   "description": "automatically add new users",
   "main": "index.js",
   "dependencies": {
+    "firebase-admin": "^9.4.2",
     "googleapis": "^39.2.0"
   },
   "devDependencies": {},
