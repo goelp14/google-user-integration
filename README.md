@@ -1,4 +1,4 @@
-# thrust-google-user-integration
+# google-user-integration
 ## Description
 This is intended to auto add people as members to a gsuite through a google form and perhaps a website in the future.
 
