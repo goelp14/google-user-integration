@@ -22,7 +22,7 @@ Make the survey via google forms. Create the linked spreadsheet. The headers on 
 | 12/20/2020 22:45:38 | Another    | User      | someotheremail@gmail.com   | Project         |
 | 12/20/2020 22:52:53 | One        | More      | justanotheremail@gmail.com | Project         |
 
-I have the following Regex to make sure that the names are in the form `First Last`: `^[A-Z].*`. Make sure you choose matches as your condition. The Email field, I have another form validation to make sure an email is given. The Primary Project is whatever groups made.
+I have the following Regex to make sure that the names are in the form `First Last`: `^[A-Z].\S*$`. What this does is basically ensure that the name is capitalized and that its just one name (no whitespace). Make sure you choose matches as your condition. The Email field, I have another form validation to make sure an email is given. The Primary Project is whatever groups made.
 
 Thats it! It's not much, but don't forget to make the questions required XD.
 
